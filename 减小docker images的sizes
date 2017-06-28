@@ -1,7 +1,11 @@
   在docker build阶段，当需要临时copy 一些大的文件到docker中时，会增加docker的size。
 虽然在后面步骤删除了，images还是很大。这是因为镜像按层存储。
 是用wget 或者curl获取文件。然后删除相应的包就可以了。记得在同一个run命令下。
-例如安装was的过程。
+例如安装was的过程。http server 可以借助于Python的http server
+#python3
+python -m http.server --bind ip port
+#python2
+python -m SimpleHTTPServer  port
 RUN  cd /tmp && wget $WAS_URL/agent.installer.linux.gtk.x86_64_1.8.4000.20151125_0201.zip \
      && wget $WAS_URL/was.repo.8550.basetrial_part1.zip \
      && wget $WAS_URL/was.repo.8550.basetrial_part2.zip \
