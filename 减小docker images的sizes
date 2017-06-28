@@ -1,0 +1,31 @@
+  在docker build阶段，当需要临时copy 一些大的文件到docker中时，会增加docker的size。
+虽然在后面步骤删除了，images还是很大。这是因为镜像按层存储。
+是用wget 或者curl获取文件。然后删除相应的包就可以了。记得在同一个run命令下。
+例如安装was的过程。
+RUN  cd /tmp && wget $WAS_URL/agent.installer.linux.gtk.x86_64_1.8.4000.20151125_0201.zip \
+     && wget $WAS_URL/was.repo.8550.basetrial_part1.zip \
+     && wget $WAS_URL/was.repo.8550.basetrial_part2.zip \
+     && wget $WAS_URL/was.repo.8550.basetrial_part3.zip \
+     && unzip -n /tmp/agent.installer.linux.gtk.x86_64_1.8.4000.20151125_0201.zip -d /tmp/ibminstallmanage \
+     && unzip -n '/tmp/was.repo.8550.basetrial_part*.zip' -d /tmp/was \
+     && /tmp/ibminstallmanage/tools/imcl install com.ibm.websphere.BASETRIAL.v85_8.5.5000.20130514_1044 \
+      -repositories /tmp/was/repository.config \
+      -installationDirectory /opt/IBM/WebSphere/AppServer_1 \
+      -sharedResourcesDirectory /opt/IBM/IMShared \
+      -properties cic.selector.nl=zh \
+      -acceptLicense \
+      -showVerboseProgress \
+      && rm -rf /tmp/was && rm -rf /tmp/*.zip
+      
+ 使用docker history查看images layer    
+      [root@k8smaster dockerfiles]# docker history 192.168.10.96/xiechuan/was85:1.0.0
+IMAGE               CREATED             CREATED BY                                      SIZE                COMMENT
+ef2de2377eb3        19 hours ago        /bin/sh -c #(nop)  EXPOSE 9043/tcp 9060/tc...   0B
+f814a97ccebd        19 hours ago        /bin/sh -c #(nop)  ENTRYPOINT ["/bin/sh" "...   0B
+0a851cb251fb        19 hours ago        |3 IIM_HOME=/tmp/ibminstallmanage WAS_HOME...   2.09MB
+feafe3fe470d        19 hours ago        |3 IIM_HOME=/tmp/ibminstallmanage WAS_HOME...   1.36MB
+a469d0a15988        19 hours ago        |3 IIM_HOME=/tmp/ibminstallmanage WAS_HOME...   738kB
+0918c0b956d7        19 hours ago        |3 IIM_HOME=/tmp/ibminstallmanage WAS_HOME...   292MB
+f0ac5107a769        19 hours ago        |3 IIM_HOME=/tmp/ibminstallmanage WAS_HOME...   13.8MB
+d10571ef229c        19 hours ago        |3 IIM_HOME=/tmp/ibminstallmanage WAS_HOME...   2.55GB
+464b9eeea9ad        19 hours ago        /bin/sh -c #(nop) COPY multi:84a8f00286cc2...   2.49kB
