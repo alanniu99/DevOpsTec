@@ -1,0 +1,307 @@
+Maven version management with Nexus
+ 
+
+Maven auto deploy and release artifacts, management the version. Maven help you to avoid manually modify the project version and strict with the standard version policy.
+Prerequisite
+
+    SCMMANAGER
+    Nexus Repository
+    Maven Client
+    Git Client
+    Eclipse with Maven, Git plugins installed
+
+Step-by-step guide
+Configure Nexus Repository Manager OSS
+
+    Execute install-nexus.bat and start-nexus.bat under %Nexus-Home%\bin\jsw\windows-x86-64 in console. Note: setup nexus version is 2.12.1. Nexus 3 use directly installer.
+    Open Nexus home page http://localhost:8081/nexus . Login use admin/admin123.  There should be have set Publish, Center releases, Snapshots repository. And Make sure the repository status is "In Service".
+    Add Apache Release proxy repository. Set Remote Storage Location as https://repository.apache.org/content/repositories/releases/
+    clip_image002
+    Move the Apache Release Repository to Ordered Group Repositories in Configuration of Public Repositories.
+    clip_image004
+
+Note: If you meet below exceptions cause to the proxy repository unavailable or  unreachable, Please try the following  solutions.
+
+Proxy Repository unreachable  fault. Please add web proxy host and port under Nexus Menu---Administration->Server->Default HTTP Proxy Settings
+
+Sun.Security.Validator.ValidatorException:PKIX path building failed Sun.Security.Validator.ValidatorException: unable to find valid certifaction path to request target.
+
+First open the remote proxy repository in browser and export the certification file. e.g. Maven.cer .
+
+Second Check the enabled JVM path. Open Control Panel->Java->Java tab->View as follow.
+
+clip_image006
+
+Third import the certification to the JRE key stores. Open console run as administrator. Change path to %JRE_HOME%\lib\security.
+
+Execute command--- "keytool -import -trustcacerts -keystore cacerts -alias MavenRepository -file Maven.cer" and default password changeit
+Setup SCMMANAGER
+
+    Create one git repository and mark the public selected. e.g Create one MavenTest repository.
+
+clip_image008
+Maven and project Configurations
+
+    Set Maven use local nexus repositories, configure the mirror URL element point to nexus repository in .m2/settings.xml
+
+mirrors seeting
+
+<mirrors>        
+
+         <mirror>           
+
+         <id>releases</id>           
+
+         <mirrorOf>*</mirrorOf>           
+
+         <url>http://localhost:8081/nexus/content/groups/public/</url>         
+
+         </mirror>        
+
+         <mirror>           
+
+         <id>nexus-snapshots</id>          
+
+         <mirrorOf>*</mirrorOf>           
+
+         <url>http://localhost:8081/nexus/content/repositories/snapshots/</url>         
+
+         </mirror>        
+
+</mirrors>   
+
+   2.  Add nexus server user/password. There is use plain text password, It's also support encrypted text.
+
+server
+
+<servers>         
+
+    <server>         
+
+         <id>releases</id>        
+
+         <username>admin</username>         
+
+         <password>admin123</password>      
+
+    </server>      
+
+    <server>        
+
+        <id>nexus-snapshots</id>        
+
+        <username>admin</username>      
+
+        <password>admin123</password>      
+
+    </server>
+
+</servers>    
+
+3. Create Maven project in eclipse:
+
+     File->New->Maven Project.Set group , artifact, version.
+
+4. Configure scm connections in pom.xml. The propertie projects.scm.id mapping to the scm server credential in maven settings.xml.
+
+scm
+
+<properties>     
+
+         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>     
+
+         <project.scm.id>my-scm-server</project.scm.id>   
+
+</properties>
+
+<scm>    
+
+         <url>http://ip:8080/scm/git/MavenTest</url>    
+
+         <connection>scm:git:http://ip:8080/scm/git/MavenTest</connection>    
+
+         <developerConnection>scm:git:http://ip:8080/scm/git/MavenTest</developerConnection>        
+
+</scm>
+
+5. Add scm credential in settings.xml.
+
+scm server
+
+<server>  
+
+   <id>my-scm-server</id>  
+
+   <username>scmadmin</username>  
+
+   <password>scmadmin</password>  
+
+</server>
+
+6. In order to deploy the artifact to nexus repository. It's need specific the deploy plugin. For better make maven work with nexus. Sonatype create nexus-staging-maven-plugin. It have better feature than maven default deploy plugin. Details refer to Nexus Staging Maven Plugin. Due to use nexus deploy plugin. We need to skip the maven default deploy plugin.
+
+nexus deploy plugin
+
+ <plugin>     
+
+         <groupId>org.apache.maven.plugins</groupId>     
+
+         <artifactId>maven-deploy-plugin</artifactId>     
+
+         <version>2.7</version>     <!--Replace the version as you local maven used, Could get it in eclipse. open pom.xml use editor, click effective POM -->
+
+         <configuration>        
+
+         <skip>true</skip>     
+
+         </configuration>  
+
+</plugin>  
+
+<plugin>     
+
+         <groupId>org.sonatype.plugins</groupId>     
+
+         <artifactId>nexus-staging-maven-plugin</artifactId>     
+
+         <version>1.3</version>     
+
+         <executions>        
+
+         <execution>           
+
+             <id>default-deploy</id>           
+
+             <phase>deploy</phase>           
+
+             <goals>              
+
+             <goal>deploy</goal>           
+
+            </goals>        
+
+         </execution>     
+
+         </executions>     
+
+         <configuration>        
+
+             <serverId>nexus-snapshots</serverId>        
+
+             <nexusUrl>http://localhost:8081/nexus/</nexusUrl>        
+
+             <skipStaging>true</skipStaging>     
+
+         </configuration>  
+
+</plugin>
+
+7. Configure maven release plugin. It will release artifact to nexus release repository. Change the pom version in local and scm. update the project version.
+
+Maven release plugin
+
+ <plugin>    
+
+         <groupId>org.apache.maven.plugins</groupId>    
+
+         <artifactId>maven-release-plugin</artifactId>    
+
+         <version>2.5.1</version>    
+
+         <configuration>     
+
+         <serverId>releases</serverId> 
+
+         <!--      <tagNameFormat>v@{project.version}</tagNameFormat> -->    
+
+         </configuration>      
+
+</plugin> 
+
+Initialize the local Git repository and push to SCM
+
+Change the path to project directory in console. Execute git command as follow.
+
+push exist project to git server
+
+$git init
+
+#initialize the git project
+
+ 
+
+$git add .
+
+#track all files exclude target folder. you can add target folder to .gitignore. details refer to https://help.github.com/articles/ignoring-files/
+
+ 
+
+$git commit -m "Initialize the git project"
+
+ 
+
+$git remote add origin http://ip:8080/scm/git/MavenTest
+
+#add remote origin master repository
+
+ 
+
+$git push origin master
+
+#push local change files to remote origin master. Then go to scm to check the remote sources if exist as excepted.
+
+Deploy artifact to nexus snapshots
+
+Now will deploy the project to Nexus repository. The project default version is 0.0.1-SNAPSHOT. When deploy the snapshot project. In nexus it will append the timestamp to the end of artifact name.
+
+    Execute mvn clean install  in project console. It will install artifact to local repository in %user_home%\.m2\repository.
+    Execute mvn deploy . It will transfer the artifact to nexus repository.
+    clip_image009
+
+Release artifact to Nexus release
+
+Before execute release command. Make sure all the change files push to scm.The maven will auto compute the version artifact by former artifact version. And alter you if need to change.
+
+1. First Execute mvn release:prepare . Release prepare will modify the artifact version in temp folder. and add git tag in temp. Synchronize with git scm.
+
+2. When console display BUILD SUCCESS info. Execute mvn release:perform .  Release perform upload the artifact to nexus release repository. You will see follow info display in console. In pom.xml the artifact version will auto change to next snapshot version.
+
+Release perform
+
+[INFO] Uploaded: http://localhost:8081/nexus/content/repositories/releases/gdc/MavenTest/0.0.2/Maven
+
+Test-0.0.2-javadoc.jar (23 KB at 154.7 KB/sec)
+
+[INFO] Uploading: http://localhost:8081/nexus/content/repositories/releases/gdc/MavenTest/0.0.2/Mave
+
+nTest-0.0.2-sources.jar
+
+[INFO] Uploaded: http://localhost:8081/nexus/content/repositories/releases/gdc/MavenTest/0.0.2/Maven
+
+Test-0.0.2-sources.jar (3 KB at 18.7 KB/sec)
+
+[INFO] [INFO]  * Bulk deploy of locally gathered snapshot artifacts finished.
+
+[INFO] [INFO] Remote deploy finished with success.
+
+[INFO] [INFO] ------------------------------------------------------------------------
+
+[INFO] [INFO] BUILD SUCCESS
+
+[INFO] [INFO] ------------------------------------------------------------------------
+
+[INFO] [INFO] Total time: 02:28 min
+
+3. Check the nexus release repository . It will display the release artifact version as follow snapshot.
+
+clip_image010
+
+Now the version will be management by maven. You can deploy the snapshot. Release formal artifact version loops.
+
+Note: If you meet below error: just copy the mvn.cmd to mvn.bat under maven bin folder.
+
+[ERROR] Failed to execute goal org.apache.maven.plugins:maven-release-plugin:2.5.1:prepare (default-cli) on project Mave
+
+nTest: Failed to invoke Maven build. Error configuring command-line. Reason: Maven executable not found at: C:\Program F
+
+iles\apache-maven-3.3.9\bin\mvn.bat ->
