@@ -1,4 +1,5 @@
 #!/bin/bash
+#author  Niu, WeiFeng
 #para
 host01=192.168.10.96  #inotify-slave的ip地址
 srcarr=("/home/public" "/home/harbor")
