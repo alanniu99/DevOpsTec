@@ -1,0 +1,17 @@
+[Unit]
+
+Description=inotify service
+
+After=network.target remote-fs.target nss-lookup.target
+
+[Service]
+
+Type=forking
+
+ExecStart=/opt/inotify/inotify.sh
+
+PrivateTmp=true
+
+[Install]
+
+WantedBy=multi-user.target

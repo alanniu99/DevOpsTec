@@ -1,0 +1,45 @@
+# Create a bootstrap master
+kubectl create -f examples/storage/redis/redis-master.yaml
+
+# Create a service to track the sentinels
+kubectl create -f examples/storage/redis/redis-sentinel-service.yaml
+
+# Create a replication controller for redis servers
+kubectl create -f examples/storage/redis/redis-controller.yaml
+
+# Create a replication controller for redis sentinels
+kubectl create -f examples/storage/redis/redis-sentinel-controller.yaml
+
+# Scale both replication controllers
+kubectl scale rc redis --replicas=3
+kubectl scale rc redis-sentinel --replicas=3
+
+# Delete the original master pod
+kubectl delete pods redis-master
+
+https://github.com/kubernetes/examples/tree/master/staging/storage/redis
+
+#hubot jenkins integration
+export HUBOT_JENKINS_URL='http://192.168.10.93:30080'
+export HUBOT_JENKINS_AUTH='admin:123456'
+Auth should be in the user:password format.
+
+https://www.npmjs.com/package/hubot-jenkins
+npm install hubot-jenkins
+
+#hubot script reload
+https://github.com/vinta/hubot-reload-scripts
+Installation
+
+In your hubot project repo, run:
+
+npm install hubot-reload-scripts --save
+Then add hubot-reload-scripts to your external-scripts.json:
+
+[
+  "hubot-reload-scripts"
+]
+Usage
+
+user>> hubot reload
+hubot>> Reloaded all scripts

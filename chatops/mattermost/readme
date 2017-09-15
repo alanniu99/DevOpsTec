@@ -1,0 +1,7 @@
+https://github.com/mattermost/mattermost-docker/tree/master/contrib/kubernetes
+
+#create gfs postgres files
+gluster volume create gfs-mm-disk replica 2 transport tcp k8smaster:/home/gfs_mm k8snode1:/home/gfs_mm
+
+#start volume
+gluster volume start gfs-mm-disk

@@ -1,0 +1,19 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: nginx-ingress
+spec:
+  template:
+    metadata:
+      labels:
+        app: nginx-ingress
+    spec:
+      containers:
+      - image: nginxdemos/nginx-ingress:0.9.0
+        imagePullPolicy: Always
+        name: nginx
+        ports:
+        - containerPort: 80
+          hostPort: 8880
+        - containerPort: 443
+          hostPort: 8443

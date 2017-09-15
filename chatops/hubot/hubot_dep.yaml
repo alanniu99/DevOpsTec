@@ -1,0 +1,55 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: hubot
+  namespace: default
+  labels:
+    k8s-app: hubot
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      k8s-app: hubot
+  template:
+    metadata:
+      labels:
+        k8s-app: hubot
+    spec:
+      containers:
+      - name: hubto
+        image: 192.168.10.123/pass/hubot:1.0 #lessa/hubot-mattermost
+        env:
+        - name: "MATTERMOST_ENDPOINT"
+          valueFrom:
+            secretKeyRef:
+              name: hubot.env
+              key: MATTERMOST_ENDPOINT
+        - name: "MATTERMOST_INCOME_URL"
+          valueFrom:
+            secretKeyRef:
+              name: hubot.env
+              key: MATTERMOST_INCOME_URL
+        - name: "MATTERMOST_TOKEN"
+          valueFrom:
+            secretKeyRef:
+              name: hubot.env
+              key: MATTERMOST_TOKEN
+        - name: "MATTERMOST_HUBOT_USERNAME"
+          valueFrom:
+            secretKeyRef:
+              name: hubot.env
+              key: MATTERMOST_HUBOT_USERNAME
+        - name: "REDIS_URL"
+          valueFrom:
+            secretKeyRef:
+              name: hubot.env
+              key: REDIS_URL
+        - name: "MATTERMOST_ICON_URL"
+          valueFrom:
+            secretKeyRef:
+              name: hubot.env
+              key: MATTERMOST_ICON_URL
+        ports:
+        - containerPort: 8080
+          name: hubot
+          protocol: TCP

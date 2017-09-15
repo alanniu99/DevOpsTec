@@ -1,0 +1,17 @@
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: rocketchat-ingress
+spec:
+  tls:
+  - hosts:
+    - rocketchat.cloudwalk.cn
+    secretName: rocketchat-ssl
+  rules:
+  - host: rocketchat.cloudwalk.cn
+    http:
+      paths:
+      - path: /
+        backend:
+          serviceName: rocketchat-service
+          servicePort: 3000

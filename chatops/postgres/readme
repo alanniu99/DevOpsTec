@@ -1,0 +1,5 @@
+#create gfs postgres files
+gluster volume create postgres-mm-disk replica 2 transport tcp k8smaster:/home/gfs_postgre_mm k8snode1:/home/gfs_postgre_mm
+
+#start volume
+gluster volume start postgres-mm-disk

@@ -1,0 +1,18 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: jitsi
+  annotations:
+    kubernetes.io/hostname: jitsi.cloudwalk
+spec:
+  template:
+    metadata:
+      labels:
+        app: jitsi
+    spec:
+      containers:
+      - name: jitsi
+        image: robertoandrade/jitsi-meet
+        ports:
+          - name: http
+            containerPort: 443

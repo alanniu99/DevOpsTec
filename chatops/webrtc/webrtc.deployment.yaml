@@ -1,0 +1,22 @@
+#docker run --name mattermost-webrtc -p 7088:7088 -p 7089:7089 -p 8188:8188 -p 8189:8189 -d mattermost/webrtc:latest
+apiVersion: apps/v1beta1
+kind: Deployment
+metadata:
+  name: mattermostwebrtc
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: webrtc
+    spec:
+      containers:
+      - name: webrtc
+        image: mattermost/webrtc:latest
+        ports:
+        - containerPort: 7088
+          name: adminport
+        - containerPort: 7089
+        - containerPort: 8188
+        - containerPort: 8189
+          name: websocket
