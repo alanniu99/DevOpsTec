@@ -7,3 +7,8 @@ for (aSlave in hudson.model.Hudson.instance.slaves) {
         aSlave.getComputer().doDoDelete();
     }
 }
+
+
+
+#强制删除僵尸job
+Jenkins.instance.getItemByFullName("job name").getBuildByNumber(job num).finish(hudson.model.Result.ABORTED, new java.io.IOException("Aborting build"));
